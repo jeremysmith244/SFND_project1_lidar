@@ -6,6 +6,8 @@
 #include "../../processPointClouds.h"
 // using templates for processPointClouds so also include .cpp to help linker
 #include "../../processPointClouds.cpp"
+#include <cmath>
+using namespace std;
 
 pcl::PointCloud<pcl::PointXYZ>::Ptr CreateData()
 {
@@ -65,6 +67,9 @@ std::unordered_set<int> Ransac(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, int ma
 {
 	std::unordered_set<int> inliersResult;
 	srand(time(NULL));
+	int a,b;
+	double A,B,C,distance;
+	pcl::PointXYZ p1, p2, pTest;
 	
 	// TODO: Fill in this function
 
@@ -76,6 +81,49 @@ std::unordered_set<int> Ransac(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, int ma
 	// If distance is smaller than threshold count it as inlier
 
 	// Return indicies of inliers from fitted line with most inliers
+
+	while(maxIterations--)
+	{
+		std::unordered_set<int> inliersTest;
+		//std::unordered_set<int>::iterator it;
+
+		a = rand() % cloud->points.size();
+		b = rand() % cloud->points.size();
+
+		while(a==b)
+		{
+			b = rand() % cloud->points.size();
+		}
+
+		p1 = cloud->points[a];
+		p2 = cloud->points[b];
+
+		A = p1.y - p2.y;
+		B = p2.x - p1.x;
+		C = p1.x*p2.y - p1.y*p2.x;
+
+		for (int j=0; j<cloud->points.size(); j++)
+		{
+			pTest = cloud->points[j];
+			distance = fabs(A*pTest.x + B*pTest.y + C)/sqrt(pow(A,2) + pow(B,2));
+			if(distance < distanceTol){
+				inliersTest.insert(j);
+			}
+		}
+
+		if (inliersTest.size() > inliersResult.size())
+		{
+			inliersResult = inliersTest;
+			//inliersResult.clear();
+			//for (it = inliersTest.begin(); it != inliersTest.end(); ++it)
+			//{
+			//	inliersResult.insert(*it);
+			//}
+		}
+
+
+
+	}
 	
 	return inliersResult;
 
@@ -92,7 +140,7 @@ int main ()
 	
 
 	// TODO: Change the max iteration and distance tolerance arguments for Ransac function
-	std::unordered_set<int> inliers = Ransac(cloud, 0, 0);
+	std::unordered_set<int> inliers = Ransac(cloud, 100, 1);
 
 	pcl::PointCloud<pcl::PointXYZ>::Ptr  cloudInliers(new pcl::PointCloud<pcl::PointXYZ>());
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloudOutliers(new pcl::PointCloud<pcl::PointXYZ>());
