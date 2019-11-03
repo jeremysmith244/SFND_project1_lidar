@@ -17,9 +17,10 @@
 #include <vector>
 #include <ctime>
 #include <chrono>
+#include <math.h>
 #include "render/box.h"
 
-#include <math.h>
+
 
 using namespace std;
 
